@@ -77,21 +77,23 @@ function get_files_to_pass() {
     local -a to_pass=()
 
     local -a last_weekly=()
-    # local -a last_mondays=()
-    # local -a last_sundays=()
+    local -a last_monthly=()
+    local -a last_custom=()
     declare -A latest_file_per_week
+    declare -A latest_file_per_month
 
     for ((i = 1; i <= 7; i++)); do
         local last_day=$(date -d "today - $((i - 1)) days" +%Y-%m-%d)
         last_weekly+=("$last_day")
     done
-
-    # for ((i = 1; i <= 15; i++)); do
-    #     local last_monday=$(date -d "last monday - $((i - 1)) weeks" +%Y-%m-%d)
-    #     last_mondays+=("$last_monday")
-    #     local last_sunday=$(date -d "last sunday - $((i - 1)) weeks" +%Y-%m-%d)
-    #     last_sundays+=("$last_sunday")
-    # done
+    for ((i = 8; i <= 32; i++)); do
+        local last_day=$(date -d "today - $((i - 1)) days" +%Y-%m-%d)
+        last_monthly+=("$last_day")
+    done
+    for ((i = 1; i <= 94; i++)); do
+        local last_day=$(date -d "today - $((i - 1)) days" +%Y-%m-%d)
+        last_custom+=("$last_day")
+    done
 
     for file in "${all_files[@]}"; do
         file_date_str=$(basename "$file" | egrep -o "\d{4}-\d{2}-\d{2}")
@@ -100,16 +102,27 @@ function get_files_to_pass() {
             to_pass+=("${file}_pass_days")
             continue
         fi
-
         week_of_year=$(date -d "$file_date_str" +%Y-%W)
         latest_file_date_str=$(basename "${latest_file_per_week[$week_of_year]}" | egrep -o "\d{4}-\d{2}-\d{2}")
         if [ -z "${latest_file_per_week[$week_of_year]}" ] || [ "$(date -d "$latest_file_date_str" +%s)" -le "$(date -d "$file_date_str" +%s)" ]; then
-            latest_file_per_week[$week_of_year]=$file
+            if date_in_array "$file_date_str" "${last_monthly[@]}"; then
+                latest_file_per_week[$week_of_year]=$file
+            fi
+        fi
+        month_of_year=$(date -d "$file_date_str" +%Y-%m)
+        latest_file_date_str=$(basename "${latest_file_per_month[$month_of_year]}" | egrep -o "\d{4}-\d{2}-\d{2}")
+        if [ -z "${latest_file_per_month[$month_of_year]}" ] || [ "$(date -d "$latest_file_date_str" +%s)" -le "$(date -d "$file_date_str" +%s)" ]; then
+            if date_in_array "$file_date_str" "${last_custom[@]}"; then
+                latest_file_per_month[$month_of_year]=$file
+            fi
         fi
     done
 
     for week in "${!latest_file_per_week[@]}"; do
         to_pass+=("${latest_file_per_week[$week]}_pass_weekly")
+    done
+    for month in "${!latest_file_per_month[@]}"; do
+        to_pass+=("${latest_file_per_month[$month]}_pass_monthly")
     done
 
     echo "${to_pass[@]}"
@@ -148,6 +161,9 @@ if [[ ! -z "$ROTATION" ]]; then
             fi
         fi
     done
+
+    echo "Rotation debug:"
+    tr ' ' '\n' < /tmp/files_to_pass.txt | sort -r
 fi
 
 exec "$@"
