@@ -90,7 +90,7 @@ function get_files_to_pass() {
         local last_day=$(date -d "today - $((i - 1)) days" +%Y-%m-%d)
         last_monthly+=("$last_day")
     done
-    for ((i = 1; i <= 94; i++)); do
+    for ((i = 1; i <= 125; i++)); do
         local last_day=$(date -d "today - $((i - 1)) days" +%Y-%m-%d)
         last_custom+=("$last_day")
     done
