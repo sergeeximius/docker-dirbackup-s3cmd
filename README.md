@@ -35,15 +35,50 @@ docker run --rm -v /data/web:/data:ro \
 
 ## Environment variables
 
-The following environment variables allows you to control the configuration parameters.
+The following environment variables allow you to control the configuration parameters:
 
-- `BACKUP_DIR` is the directory within the mounted volume to be archived; defaults to the root directory '/'.
-- `BACKUP_NAME` is the name of the backup archive; the default name is set to 'data'.
-- `BACKUP_EXCLUDE` is a comma-separated list of items to be excluded from the backup with no spaces; it defaults to an empty string.
-- `BACKUP_FORMAT` specifies the archiving utility to be used, which can be either 'gzip' or 'xz'; 'gzip' is the default setting.
-- `S3_BUCKET` is the mandatory name of the bucket within the S3 storage.
-- `S3_ACCESS_KEY` is the required S3 access key credential.
-- `S3_SECRET_KEY` is the required S3 secret key credential.
-- `S3_PATH` is the path within the S3 bucket where the archive will be stored; it defaults to an empty string.
-- `S3_NAME_PREFIX` is the prefix for the archive name; it defaults to an empty string.
-- `S3_PROVIDER` is the S3 service provider, options include 'Yandex' or 'Selectel'; the default provider is set to 'yandex'.
+- `BACKUP_DIR`: Specifies the directory within the mounted volume to be archived. It defaults to the root directory '/'.
+- `BACKUP_NAME`: Sets the name of the backup archive. The default name is 'data'.
+- `BACKUP_EXCLUDE`: A comma-separated list of items to be excluded from the backup with no spaces. The default is an empty string.
+- `BACKUP_FORMAT`: Determines the archiving utility to be used, options are either 'gzip' or 'xz'. 'gzip' is the default format.
+- `S3_BUCKET`: The mandatory name of the bucket within the S3 storage.
+- `S3_ACCESS_KEY`: The required S3 access key credential.
+- `S3_SECRET_KEY`: The required S3 secret key credential.
+- `S3_PATH`: Defines the path within the S3 bucket where the archive will be stored. It defaults to an empty string.
+- `S3_NAME_PREFIX`: Establishes the prefix for the archive name. The default is an empty string.
+- `S3_PROVIDER`: Specifies the S3 service provider, with available options being 'Yandex' or 'Selectel'. The default provider is 'yandex'.
+
+### Added in branch (tag) dev
+- `ROTATION`: Enables the rotation of archives. This environment variable is not set by default.
+- `ROTATION_DRY_RUN`: Outputs a notification of the intentions but does not delete files from storage. By default, this is not set.
+
+## Rotation Policy Description
+The rotation policy ensures that the archives are maintained as follows:
+- Daily archives for the last 7 days, including the current day, are preserved when available.
+- Weekly archives for the last 4 weeks, including the current week. The policy retains the latest available archive created during that week.
+- Monthly archives for the last 4 months, including the current month. The policy retains the latest available archive created in that month.
+
+
+# Russian
+
+## Описание переменных
+- `BACKUP_DIR`: Каталог внутри подключаемого каталога который будет архивирован, по умолчанию ‘/’.
+- `BACKUP_NAME`: Имя архива, по умолчанию ‘data’.
+- `BACKUP_EXCLUDE`: Список исключений из архива, через запятую, без пробелов, по умолчанию ‘’.
+- `BACKUP_FORMAT`: Архиватор, может быть gzip или xz, по умолчанию ‘gzip’.
+- `S3_BACKET`: Имя бакета в хранилище S3, требуется обязательно.
+- `S3_ACCESS_KEY`: S3 access key, требуется обязательно.
+- `S3_SECRET_KEY:` S3 secret key, требуется обязательно.
+- `S3_PATH`: Путь к архиву в бакете S3, по умолчанию ‘’.
+- `S3_NAME_PREFIX`: Префикс имени архива, по умолчанию ‘’.
+- `S3_PROVIDER`: Провайдер S3, может быть Yandex или Selectel, по умолчанию ‘yandex’.
+
+### Добавлено в ветке (теге) dev
+- `ROTATION`: Включает ротацию архивов, по умолчанию не задано.
+- `ROTATION_DRY_RUN`: Выводит уведомление о намерениях, но не удаляет файлы из хранилища, по умолчанию не задано.
+
+## Описание ротации
+Всегда остаются архивы:
+- Ежедневные за 7 последних дней, включая текущий при их наличии.
+- Еженедельные за 4 последние недели, включая текущую. Остается последний из наличия архив сделанный на той неделе.
+- Ежемесячные за последние 4 месяца, включая текущий. Остается последний из наличия архив сделанный в том месяце.
