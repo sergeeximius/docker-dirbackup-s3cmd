@@ -82,11 +82,11 @@ function get_files_to_pass() {
     declare -A latest_file_per_week
     declare -A latest_file_per_month
 
-    for ((i = 1; i <= 7; i++)); do
+    for ((i = 1; i <= 6; i++)); do
         local last_day=$(date -d "today - $((i - 1)) days" +%Y-%m-%d)
         last_weekly+=("$last_day")
     done
-    for ((i = 8; i <= 32; i++)); do
+    for ((i = 7; i <= 32; i++)); do
         local last_day=$(date -d "today - $((i - 1)) days" +%Y-%m-%d)
         last_monthly+=("$last_day")
     done
