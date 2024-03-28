@@ -157,7 +157,7 @@ if [[ ! -z "$ROTATION" ]]; then
                 echo "Passing: $file"
             else
                 echo "Deleting: $file"
-                #s3cmd del "$file"
+                s3cmd del "$file"
             fi
         fi
     done
