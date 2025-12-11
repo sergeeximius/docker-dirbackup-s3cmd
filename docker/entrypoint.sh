@@ -41,7 +41,9 @@ if [[ ! -z "$BACKUP_EXCLUDE" ]]; then
 else
     exclude_params=("--exclude=*.DS_Store")
 fi
-test -z "$S3_BACKET" && echo "S3_BACKET is not defined" && exit 1
+# Backward compatibility: support old S3_BACKET variable name
+test -z "$S3_BUCKET" && S3_BUCKET="$S3_BACKET"
+test -z "$S3_BUCKET" && echo "S3_BUCKET is not defined" && exit 1
 test -z "$S3_ACCESS_KEY" && echo "S3_ACCESS_KEY is not defined" && exit 1
 test -z "$S3_SECRET_KEY" && echo "S3_SECRET_KEY is not defined" && exit 1
 test -z "$S3_PATH" && s3_path='' || s3_path=/${S3_PATH}
@@ -96,21 +98,21 @@ function get_files_to_pass() {
     done
 
     for file in "${all_files[@]}"; do
-        file_date_str=$(basename "$file" | egrep -o "\d{4}-\d{2}-\d{2}")
+        file_date_str=$(basename "$file" | grep -oE "[0-9]{4}-[0-9]{2}-[0-9]{2}")
 
         if date_in_array "$file_date_str" "${last_weekly[@]}"; then
             to_pass+=("${file}_pass_days")
             continue
         fi
         week_of_year=$(date -d "$file_date_str" +%Y-%W)
-        latest_file_date_str=$(basename "${latest_file_per_week[$week_of_year]}" | egrep -o "\d{4}-\d{2}-\d{2}")
+        latest_file_date_str=$(basename "${latest_file_per_week[$week_of_year]}" | grep -oE "[0-9]{4}-[0-9]{2}-[0-9]{2}")
         if [ -z "${latest_file_per_week[$week_of_year]}" ] || [ "$(date -d "$latest_file_date_str" +%s)" -le "$(date -d "$file_date_str" +%s)" ]; then
             if date_in_array "$file_date_str" "${last_monthly[@]}"; then
                 latest_file_per_week[$week_of_year]=$file
             fi
         fi
         month_of_year=$(date -d "$file_date_str" +%Y-%m)
-        latest_file_date_str=$(basename "${latest_file_per_month[$month_of_year]}" | egrep -o "\d{4}-\d{2}-\d{2}")
+        latest_file_date_str=$(basename "${latest_file_per_month[$month_of_year]}" | grep -oE "[0-9]{4}-[0-9]{2}-[0-9]{2}")
         if [ -z "${latest_file_per_month[$month_of_year]}" ] || [ "$(date -d "$latest_file_date_str" +%s)" -le "$(date -d "$file_date_str" +%s)" ]; then
             if date_in_array "$file_date_str" "${last_custom[@]}"; then
                 latest_file_per_month[$month_of_year]=$file
@@ -131,7 +133,7 @@ function get_files_to_pass() {
 tar "${exclude_params[@]}" -cf /${backup_name}_${postfix} data${backup_dir}
 
 $backup_bin /${backup_name}_${postfix}
-s3cmd --storage-class COLD put /${backup_name}_${postfix}${backup_ext} s3://${S3_BACKET}${s3_path}/${s3_name_prefix}${backup_name}_${postfix}${backup_ext}
+s3cmd --storage-class COLD put /${backup_name}_${postfix}${backup_ext} s3://${S3_BUCKET}${s3_path}/${s3_name_prefix}${backup_name}_${postfix}${backup_ext}
 
 if [ $? -ne 0 ]; then
     echo "Command s3cmd return code $?. Exit"
@@ -140,7 +142,7 @@ fi
 
 if [[ ! -z "$ROTATION" ]]; then
     # Получение списка файлов в bucket и сортировка (новейшие файлы вверху).
-    all_files=($(s3cmd ls s3://${S3_BACKET}${s3_path}/ | awk '{print $4}' | grep -- "${s3_name_prefix}${backup_name}" | sort -r))
+    all_files=($(s3cmd ls s3://${S3_BUCKET}${s3_path}/ | awk '{print $4}' | grep -- "${s3_name_prefix}${backup_name}" | sort -r))
     # Определение файлов для пропуска.
     echo $(get_files_to_pass "${all_files[@]}") >/tmp/files_to_pass.txt
 

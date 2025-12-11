@@ -10,6 +10,7 @@ help: ## This help.
 .DEFAULT_GOAL := help
 
 build: ## Build the container image with tag (e.g. make build TAG=latest)
+	@docker buildx rm multi-arch 2>/dev/null || true
 	@docker buildx create --name multi-arch --driver docker-container --use
 	@docker buildx inspect --bootstrap
 	@docker buildx build --platform linux/amd64,linux/arm64 -t $(APP_NAME):$(TAG) --pull --push docker
@@ -22,4 +23,4 @@ build-dev: TAG=dev
 build-dev: build ## Build the image with the 'dev' tag
 
 shell: ## Creates a shell inside the container for debug purposes
-	@docker run -it $(APP_NAME):$(TAG) bash
+	@docker run -it --rm --entrypoint /bin/bash $(APP_NAME):$(TAG)
