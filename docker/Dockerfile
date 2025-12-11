@@ -3,8 +3,6 @@ FROM xueshanf/awscli:latest
 # Labels.
 LABEL maintainer="serge.eximius@gmail.com" \
     org.label-schema.schema-version="1.0" \
-    org.label-schema.build-date=$BUILD_DATE \
-    org.label-schema.vcs-ref=$VCS_REF \
     org.label-schema.name="ssedov/dirbackup-s3cmd" \
     org.label-schema.description="Dockerized dir backup with copy to s3 storage." \
     org.label-schema.url="https://github.com/sergeeximius/docker-dirbackup-s3cmd" \
